@@ -10,3 +10,4 @@ groupama/data/base_pno.*
 .DS_Store
 .idea/
 /Users/felipeinostroza/code/covid-vaccines/covidvaccines/data/country_vaccinations.csv
+country_vaccinations.csv
