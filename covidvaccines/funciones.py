@@ -54,6 +54,7 @@ def get_population(country):
 
 def get_df():
 
+
     data = pd.read_csv('/Users/felipeinostroza/desktop/country_vaccinations.csv').drop(columns = ['source_website', 'iso_code'])
 
     data.people_fully_vaccinated = data.index.map(lambda x: fill_people_full_vacc(x,'people_fully_vaccinated',data))
@@ -127,5 +128,7 @@ def grafico_vacunas_per_100000():
 if __name__ == '__main__':
 
 
-    grafico_vacunas_totales(get_df())
+    data = pd.read_csv('/Users/felipeinostroza/desktop/country_vaccinations.csv').drop(columns = ['source_website', 'iso_code'])
+
+    print(data.head())
 
