@@ -1,0 +1,3 @@
+graft covid-vaccines
+global-exclude *.py[cod] __pycache__ *.so *.ipynb
+recursive-exclude  covid-vaccines/jupy *
