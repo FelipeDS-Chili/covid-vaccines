@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import requests
 from bs4 import BeautifulSoup
 import re
+import os
 
 
 
@@ -55,7 +56,10 @@ def get_population(country):
 def get_df():
 
 
-    data = pd.read_csv('/Users/felipeinostroza/desktop/country_vaccinations.csv').drop(columns = ['source_website', 'iso_code'])
+    data = pd.read_csv(os.path.join(os.path.dirname(__file__) , 'data', 'country_vaccinations.csv')).drop(columns = ['source_website', 'iso_code'])
+
+
+    data = pd.read_csv('covidvaccines/data/country_vaccinations.csv').drop(columns = ['source_website', 'iso_code'])
 
     data.people_fully_vaccinated = data.index.map(lambda x: fill_people_full_vacc(x,'people_fully_vaccinated',data))
     data.people_fully_vaccinated_per_hundred = data.index.map(lambda x: fill_people_full_vacc(x,'people_fully_vaccinated_per_hundred',data))
@@ -86,6 +90,9 @@ def get_df():
     data_full['vac_per_100000'] = data_full.total_vaccinations/data_full.pop_data_2019*100000
 
     return data_full
+
+def test():
+    return __file__
 
 
 
@@ -126,9 +133,4 @@ def grafico_vacunas_per_100000():
 
 
 if __name__ == '__main__':
-
-
-    data = pd.read_csv('/Users/felipeinostroza/desktop/country_vaccinations.csv').drop(columns = ['source_website', 'iso_code'])
-
-    print(data.head())
-
+    pass
