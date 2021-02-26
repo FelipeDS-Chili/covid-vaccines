@@ -56,7 +56,7 @@ def get_population(country):
 def get_df():
 
 
-    data = pd.read_csv(os.path.join(os.path.dirname(__file__) , 'data', 'country_vaccinations.csv')).drop(columns = ['source_website', 'iso_code'])
+    #data = pd.read_csv(os.path.join(os.path.dirname(__file__) , 'data', 'country_vaccinations.csv')).drop(columns = ['source_website', 'iso_code'])
 
 
     data = pd.read_csv('covidvaccines/data/country_vaccinations.csv').drop(columns = ['source_website', 'iso_code'])
