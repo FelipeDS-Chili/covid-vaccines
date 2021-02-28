@@ -9,7 +9,11 @@ import json
 
 #title = st.text_input('Nombre del Anime', 'naruto')
 
-st.table(get_df().head())
+url = 'https://raw.githubusercontent.com/owid/covid-19-data/master/public/data/vaccinations/vaccinations.csv'
+data = pd.read_csv(url, error_bad_lines=False).drop(columns = ['source_website', 'iso_code'])
+
+
+st.table(get_df(data).head())
 
 
 

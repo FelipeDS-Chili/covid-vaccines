@@ -53,13 +53,11 @@ def get_population(country):
     return None
 
 
-def get_df():
+def get_df(data):
 
 
     #data = pd.read_csv(os.path.join(os.path.dirname(__file__) , 'data', 'country_vaccinations.csv')).drop(columns = ['source_website', 'iso_code'])
 
-
-    data = pd.read_csv('covidvaccines/data/country_vaccinations.csv').drop(columns = ['source_website', 'iso_code'])
 
     data.people_fully_vaccinated = data.index.map(lambda x: fill_people_full_vacc(x,'people_fully_vaccinated',data))
     data.people_fully_vaccinated_per_hundred = data.index.map(lambda x: fill_people_full_vacc(x,'people_fully_vaccinated_per_hundred',data))
