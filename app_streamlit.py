@@ -59,16 +59,13 @@ st.write('Total data in database: ', len_data())
 st.write('Territories in database: ', len(get_df(data)))
 
 
-brush = alt.selection(type='interval', encodings=['y'])
+
 
 st.altair_chart(alt.Chart(chart_total, width = 800, height = 800).mark_bar().encode(
     x=alt.X('total_vaccinations'),
     y=alt.Y('country', sort ='-x'
         ),color = "country:N"
-).add_selection(
-    brush
-).interactive().transform_filter(
-    brush ).properties(title="Top 30: Total Vaccinations by Country").resolve_scale(color='shared'))
+).interactive().properties(title="Top 30: Total Vaccinations by Country").resolve_scale(color='shared'))
 
 
 
@@ -83,10 +80,7 @@ st.altair_chart(alt.Chart(chart_data, width = 800, height = 800).mark_bar().enco
     x=alt.X('vac_per_100000'),
     y=alt.Y('country', sort ='-x'
         ),color = "country:N"
-).add_selection(
-    brush
-).interactive().transform_filter(
-    brush ).properties(title="Top 30: Vaccinations per 100.000 inhabitants").resolve_scale(color='shared'))
+).interactive().properties(title="Top 30: Vaccinations per 100.000 inhabitants").resolve_scale(color='shared'))
 
 
 
