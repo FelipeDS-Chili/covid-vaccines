@@ -37,7 +37,11 @@ st.header('Covid Vaccination Progress')
 
 st.subheader('Total Vaccinations')
 
+
+
 chart_total = get_bar_chart_data_total()
+
+st.subheader('Dataset rows = ', len(chart_total))
 
 brush = alt.selection(type='interval', encodings=['y'])
 
