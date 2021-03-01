@@ -5,7 +5,7 @@ with open('requirements.txt') as f:
     content = f.readlines()
 requirements = [x.strip() for x in content if 'git+' not in x]
 
-setup(name='toolbox',
+setup(name='covidvaccines',
       version="1.0",
       description="Project Description",
       packages=find_packages(),
@@ -13,5 +13,5 @@ setup(name='toolbox',
       install_requires=requirements,
       # include_package_data: to install data from MANIFEST.in
       include_package_data=True,
-      scripts=['scripts/toolbox-run'],
+      scripts=['scripts/covid-vaccines-run'],
       zip_safe=False)
