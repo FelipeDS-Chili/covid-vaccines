@@ -81,6 +81,9 @@ def get_df(data):
     data_full.at['Saint Helena', 'pop_data_2019'] = 6600
     data_full.at['Scotland', 'pop_data_2019'] = 5454000
     data_full.at['Wales', 'pop_data_2019'] = 3136000
+    data_full.at['World', 'pop_data_2019'] = 7700000000
+    data_full.at['European Union', 'pop_data_2019'] = 446000000
+
 
 
     data_full = data_full.reset_index()
