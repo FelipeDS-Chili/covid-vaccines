@@ -92,8 +92,6 @@ def get_df(data):
 
     return data_full
 
-def test():
-    return __file__
 
 
 
@@ -131,6 +129,143 @@ def grafico_vacunas_per_100000():
         return None
 
 
+def reconstruct_data(df, columna_filtro, columna_a_reconstruir, n):
+
+    '''
+    Esta función es para reconstruir los NaN values con regressiones lineales entre segmentos sin datos.
+    De tal forma que los graficos de lineas se vean continuos y no con vacios
+    La funcion completa los graficos lineales por para cada categoria (ej: pais)
+    Columna_filtro es la columna por la cual se filtrara la data para tratarla parcialmente
+    columna_a_reconstruir es la columna la cual se insertará data para ser utilizada en graficos
+    n: es el numero de columna que es la columna a reconstruir
+    '''
+
+    for country in list(df[columna_filtro].unique()):
+
+        data_pais = df[df[columna_filtro] == country].copy()
+
+        if data_pais[data_pais[columna_filtro] == country][columna_a_reconstruir].isnull().sum() == len(data_pais[data_pais[columna_filtro] == country][columna_a_reconstruir]):
+            continue
+
+
+        if pd.isnull( data_pais.iloc[0,n] ):
+
+            data_pais.iloc[0,n] = 0
+
+        if pd.isnull( data_pais.iloc[len(data_pais)-1,n] ):
+
+            data_pais.iloc[len(data_pais)-1,n] = data_pais[data_pais[columna_filtro] == country][columna_a_reconstruir].dropna().tail(1).iloc[0]
+
+        empty = []
+
+        for idx, value in enumerate(data_pais[columna_a_reconstruir]):
+
+            if pd.isnull(value):
+                empty.append(idx)
+
+        if len(empty) > 0:
+
+
+
+            last_digit = empty[0] #digito para iterar nan values index list
+            diff_empty = []
+
+            for idx in empty:
+                diff = idx - last_digit
+                diff_empty.append(diff)
+                last_digit = idx
+
+            del diff_empty[0]
+
+            if len(diff_empty) > 0:
+
+                before_value_idx = empty[0]-1
+                before_value = data_pais[columna_a_reconstruir].iloc[before_value_idx]
+                empty.insert(len(empty), 9) # numero ficticio para que se lean todos los valores después
+
+
+
+
+                for idx, diff_num in enumerate(diff_empty):
+
+
+                    if diff_num != 1:
+
+                        ended_value_idx = empty[idx] + 1
+                        ended_value = data_pais[columna_a_reconstruir].iloc[ended_value_idx]
+                        coef = np.polyfit([before_value_idx, ended_value_idx], [before_value, ended_value], 1)
+
+                        #calcular regression para nan values index
+                        #insertarlos en el df
+                        values_to_fill = np.array([i for i in range(before_value_idx+1,ended_value_idx)])*coef[0] + coef[1]
+
+                        for idx_2, i in enumerate(range(before_value_idx+1, ended_value_idx)):
+
+                            data_pais.iloc[i,n] = values_to_fill[idx_2]
+                            df[df[columna_filtro]==country] = data_pais
+
+                        if (idx + 1) < len(empty):
+
+                            before_value_idx = empty[idx + 1] - 1
+                            before_value = data_pais[columna_a_reconstruir].iloc[before_value_idx]
+
+                        if (idx + 1) == len(diff_empty):
+
+                            ended_value_idx = empty[idx+1] + 1
+                            ended_value = data_pais[columna_a_reconstruir].iloc[ended_value_idx]
+                            coef = np.polyfit([before_value_idx, ended_value_idx], [before_value, ended_value], 1)
+
+                            #calcular regression para nan values index
+                            #insertarlos en el df
+                            values_to_fill = np.array([i for i in range(before_value_idx+1,ended_value_idx)])*coef[0] + coef[1]
+
+                            for idx_2, i in enumerate(range(before_value_idx+1, ended_value_idx)):
+
+                                data_pais.iloc[i,n] = values_to_fill[idx_2]
+                                df[df[columna_filtro]==country] = data_pais
+
+                    else:
+
+                        if (idx + 1) == len(diff_empty):
+
+                            ended_value_idx = empty[idx+1] + 1
+                            ended_value = data_pais[columna_a_reconstruir].iloc[ended_value_idx]
+                            coef = np.polyfit([before_value_idx, ended_value_idx], [before_value, ended_value], 1)
+
+                            #calcular regression para nan values index
+                            #insertarlos en el df
+                            values_to_fill = np.array([i for i in range(before_value_idx+1,ended_value_idx)])*coef[0] + coef[1]
+
+                            for idx_2, i in enumerate(range(before_value_idx+1, ended_value_idx)):
+
+                                data_pais.iloc[i,n] = values_to_fill[idx_2]
+                                df[df[columna_filtro]==country] = data_pais
+
+            elif (len(diff_empty) ==0 and len(empty) == 1):
+
+                        before_value_idx = empty[0] - 1
+
+                        before_value = data_pais[columna_a_reconstruir].iloc[before_value_idx]
+
+
+                        ended_value_idx = empty[0] + 1
+
+                        ended_value = data_pais[columna_a_reconstruir].iloc[ended_value_idx]
+
+
+                        coef = np.polyfit([before_value_idx, ended_value_idx], [before_value, ended_value], 1)
+
+
+                        values_to_fill = np.array([i for i in range(before_value_idx+1,ended_value_idx)])*coef[0] + coef[1]
+
+                        for idx_2, i in enumerate(range(before_value_idx+1, ended_value_idx)):
+
+                            data_pais.iloc[i,n] = values_to_fill[idx_2]
+                            df[df[columna_filtro]==country] = data_pais
+
+
+
+    return df
 
 
 if __name__ == '__main__':
