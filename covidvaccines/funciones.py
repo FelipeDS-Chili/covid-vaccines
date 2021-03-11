@@ -53,18 +53,26 @@ def get_population(country):
     return None
 
 
-def get_df(data):
+def get_df(data, fecha_desde):
 
 
     #data = pd.read_csv(os.path.join(os.path.dirname(__file__) , 'data', 'country_vaccinations.csv')).drop(columns = ['source_website', 'iso_code'])
-
+    #cambio
+    data = reconstruct_data(data, columna_filtro = 'location', columna_a_reconstruir = 'total_vaccinations' , n = 2)
+    data = reconstruct_data(data, columna_filtro = 'location', columna_a_reconstruir = 'people_vaccinated' , n = 3)
+    data.date = pd.to_datetime(data.date)
     data = data.rename(columns={"location": "country"})
     data.people_fully_vaccinated = data.index.map(lambda x: fill_people_full_vacc(x,'people_fully_vaccinated',data))
     data.people_fully_vaccinated_per_hundred = data.index.map(lambda x: fill_people_full_vacc(x,'people_fully_vaccinated_per_hundred',data))
 
-    data_by_country = data.groupby('country').max()[['date','total_vaccinations', 'people_vaccinated']].reset_index()
 
-    data_full = data_by_country
+
+
+
+    #cambio  name
+    data_by_country_today = data.groupby('country').max()[['date','total_vaccinations', 'people_vaccinated']].reset_index()
+
+    data_full = data_by_country_today
     data_full.country = data_full.country.replace('United Kingdom', 'UK').replace('United States', 'US')
     data_full = data_full.set_index('country')
 
@@ -85,12 +93,39 @@ def get_df(data):
     data_full.at['European Union', 'pop_data_2019'] = 446000000
 
 
+    if fecha_desde == 'no':
+        data_full['totvacc_per_100000'] = data_full.total_vaccinations/data_full.pop_data_2019*100000
+        data_full['peoplevaccinated_per_100000'] = data_full.people_vaccinated/data_full.pop_data_2019*100000
 
-    data_full = data_full.reset_index()
+        return data_full.drop(columns = 'date').reset_index()
 
-    data_full['vac_per_100000'] = data_full.total_vaccinations/data_full.pop_data_2019*100000
+    else:
+        data_since = data[data.date <= fecha_desde]
+        data_by_country_since = data_since.groupby('country').max()[['date','total_vaccinations', 'people_vaccinated']].reset_index()
+        data_by_country_since = data_by_country_since.drop(columns = 'date').rename(columns={"total_vaccinations": "total_vaccinations_before", 'people_vaccinated': 'people_vaccinated_before' })
 
-    return data_full
+
+        data_full = data_full.reset_index()
+
+        data_full = data_full.rename(columns={"total_vaccinations": "total_vaccinations_today", 'people_vaccinated': 'people_vaccinated_today' })
+
+        data_full = data_full.merge(data_by_country_since, how = 'left', on = 'country' )
+
+        data_full['totvacc_per_100000_today'] = data_full.total_vaccinations_today/data_full.pop_data_2019*100000
+
+        data_full['totvacc_per_100000_before'] = data_full.total_vaccinations_before/data_full.pop_data_2019*100000
+
+        data_full['peoplevacc_per_100000_today'] = data_full.people_vaccinated_today/data_full.pop_data_2019*100000
+
+        data_full['peoplevacc_per_100000_before'] = data_full.people_vaccinated_before/data_full.pop_data_2019*100000
+
+
+
+        data_full['delta_peoplevaccinated_per_100000'] = data_full.peoplevacc_per_100000_today - data_full.peoplevacc_per_100000_before
+
+        data_full['delta_totvaccinations_per_100000'] = data_full.totvacc_per_100000_today - data_full.totvacc_per_100000_before
+
+        return data_full.drop(columns = 'date')
 
 
 

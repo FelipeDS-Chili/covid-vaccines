@@ -15,9 +15,10 @@ import numpy as np
 
 url = 'https://raw.githubusercontent.com/owid/covid-19-data/master/public/data/vaccinations/vaccinations.csv'
 data = pd.read_csv(url, error_bad_lines=False).drop(columns = ['iso_code'])
-data_2 = reconstruct_data(data, columna_filtro = 'location', columna_a_reconstruir = 'total_vaccinations', n = 2)
+data['date'] = pd.to_datetime(data.date)
 
-#data['date'] = pd.to_datetime(data.date)
+
+
 
 
 
@@ -28,34 +29,43 @@ def len_data():
 
 @st.cache(suppress_st_warning = True)
 def get_bar_chart_data():
-    print('get_bar_chart_data called')
-
-    top_20_vaccines = get_df(data).sort_values('total_vaccinations', ascending = False).head(30)
-
-    return top_20_vaccines[['country', 'vac_per_100000']].sort_values('vac_per_100000', ascending = True)
 
 
+    if fecha_desde == 'no':
+
+        top_20_vaccines = get_df(data, 'no').sort_values('totvacc_per_100000', ascending = False).head(30)
+
+        return top_20_vaccines[['country', 'totvacc_per_100000']].sort_values('totvacc_per_100000', ascending = True)
+    else:
+
+        top_20_vaccines = get_df(data, fecha_desde).sort_values('delta_totvaccinations_per_100000', ascending = False).head(30)
+
+        return top_20_vaccines[['country', 'delta_totvaccinations_per_100000']]
 
 
 @st.cache(suppress_st_warning = True)
 def get_bar_chart_data_total():
     print('get_bar_chart_data called')
 
-    top_20_vaccines = get_df(data).sort_values('total_vaccinations', ascending = False).head(30)
+    top_20_vaccines = get_df(data, 'no').sort_values('total_vaccinations', ascending = False).head(30)
 
     return top_20_vaccines[['country', 'total_vaccinations']]
 
-@st.cache
-def get_line_chart_data():
-    print('get_line_chart_data called')
-    df = data_2.pivot(index='date',columns='location',values='people_vaccinated')
-    return df.head(5)
 
 
-df = get_line_chart_data()
+# @st.cache
+# def get_line_chart_data():
+#     print('get_line_chart_data called')
+#     df = data_2[(data_2.location=='Israel') | (data_2.location=='Chile')]
+#     df = df.pivot(index='date',columns='location',values='people_vaccinated',margins = True)
+#     #df = data_2.pivot(index='date',columns='location',values='people_vaccinated')
+#     return df
 
 
-st.line_chart(df)
+# df = get_line_chart_data()
+
+
+# st.line_chart(df)
 
 
 # df2 = get_line_chart_data()
@@ -66,42 +76,82 @@ st.line_chart(df)
 
 
 
+
 st.header('Covid Vaccination Progress')
 
+if st.checkbox('Mostrar tasa de incremento de vacunas respecto a una fecha anterior ?', value=False, key=None):
 
-st.subheader('Total Vaccinations')
+    fecha_desde = st.date_input('Fecha desde: ')
+    fecha_desde = pd.to_datetime(fecha_desde)
 
 
 
-chart_total = get_bar_chart_data_total()
+    if st.button('Mostrar gráficos'):
+
+        st.subheader('Total Vaccinations')
+
+        chart_total = get_bar_chart_data_total()
+
+        st.altair_chart(alt.Chart(chart_total, width = 800, height = 800).mark_bar().encode(
+            x=alt.X('total_vaccinations'),
+            y=alt.Y('country', sort ='-x'
+                ),color = "country:N"
+        ).interactive().properties(title="Top 30: Total Vaccinations by Country").resolve_scale(color='shared'))
+
+        st.subheader('Vaccinations per inhabitants')
+
+        chart_data = get_bar_chart_data()
+
+        brush = alt.selection(type='interval', encodings=['y'])
+
+        st.altair_chart(alt.Chart(chart_data, width = 800, height = 800).mark_bar().encode(
+            x=alt.X('delta_totvaccinations_per_100000'),
+            y=alt.Y('country', sort ='-x'
+                ),color = "country:N"
+        ).interactive().properties(title="Top 30: Vaccinations per 100.000 inhabitants").resolve_scale(color='shared'))
+
+
+
+else:
+    fecha_desde = 'no'
+
+    if st.button('Mostrar gráficos de hoy'):
+
+        st.subheader('Total Vaccinations')
+
+        chart_total = get_bar_chart_data_total()
+
+        st.altair_chart(alt.Chart(chart_total, width = 800, height = 800).mark_bar().encode(
+            x=alt.X('total_vaccinations'),
+            y=alt.Y('country', sort ='-x'
+                ),color = "country:N"
+        ).interactive().properties(title="Top 30: Total Vaccinations by Country").resolve_scale(color='shared'))
+
+        st.subheader('Vaccinations per inhabitants')
+
+        chart_data = get_bar_chart_data()
+
+        brush = alt.selection(type='interval', encodings=['y'])
+
+        st.altair_chart(alt.Chart(chart_data, width = 800, height = 800).mark_bar().encode(
+            x=alt.X('totvacc_per_100000'),
+            y=alt.Y('country', sort ='-x'
+                ),color = "country:N"
+        ).interactive().properties(title="Top 30: Vaccinations per 100.000 inhabitants").resolve_scale(color='shared'))
+
+
 
 st.write('Total data in database: ', len_data())
 
-st.write('Territories in database: ', len(get_df(data)))
+st.write('Territories in database: ', len(get_df(data, 'no')))
 
 
 
 
-st.altair_chart(alt.Chart(chart_total, width = 800, height = 800).mark_bar().encode(
-    x=alt.X('total_vaccinations'),
-    y=alt.Y('country', sort ='-x'
-        ),color = "country:N"
-).interactive().properties(title="Top 30: Total Vaccinations by Country").resolve_scale(color='shared'))
 
 
 
 
-st.subheader('Vaccinations per inhabitants')
-
-chart_data = get_bar_chart_data()
-
-brush = alt.selection(type='interval', encodings=['y'])
-
-st.altair_chart(alt.Chart(chart_data, width = 800, height = 800).mark_bar().encode(
-    x=alt.X('vac_per_100000'),
-    y=alt.Y('country', sort ='-x'
-        ),color = "country:N"
-).interactive().properties(title="Top 30: Vaccinations per 100.000 inhabitants").resolve_scale(color='shared'))
 
 
 
