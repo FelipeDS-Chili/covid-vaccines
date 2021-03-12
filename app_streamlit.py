@@ -81,12 +81,18 @@ st.header('Covid Vaccination Progress')
 
 if st.checkbox('Mostrar tasa de incremento de vacunas respecto a una fecha anterior ?', value=False, key=None):
 
-    fecha_desde = st.date_input('Fecha desde: ')
-    fecha_desde = pd.to_datetime(fecha_desde)
+    fecha_desde_s = st.date_input('Fecha desde: ')
+
+    fecha_desde = pd.to_datetime(fecha_desde_s)
 
 
 
     if st.button('Mostrar gráficos'):
+
+
+        st.write('Total data in database: ', len_data())
+
+        st.write('Territories in database: ', len(get_df(data, 'no')))
 
         st.subheader('Total Vaccinations')
 
@@ -98,7 +104,7 @@ if st.checkbox('Mostrar tasa de incremento de vacunas respecto a una fecha anter
                 ),color = "country:N"
         ).interactive().properties(title="Top 30: Total Vaccinations by Country").resolve_scale(color='shared'))
 
-        st.subheader('Vaccinations per inhabitants')
+        st.subheader(f'Change rate from {fecha_desde_s} until today')
 
         chart_data = get_bar_chart_data()
 
@@ -108,7 +114,7 @@ if st.checkbox('Mostrar tasa de incremento de vacunas respecto a una fecha anter
             x=alt.X('delta_totvaccinations_per_100000'),
             y=alt.Y('country', sort ='-x'
                 ),color = "country:N"
-        ).interactive().properties(title="Top 30: Vaccinations per 100.000 inhabitants").resolve_scale(color='shared'))
+        ).interactive().properties(title="Top 30: Change Rate Total Vaccinations per 100.000 inhabitants").resolve_scale(color='shared'))
 
 
 
@@ -116,6 +122,11 @@ else:
     fecha_desde = 'no'
 
     if st.button('Mostrar gráficos de hoy'):
+
+
+        st.write('Total data in database: ', len_data())
+
+        st.write('Territories in database: ', len(get_df(data, 'no')))
 
         st.subheader('Total Vaccinations')
 
@@ -141,9 +152,6 @@ else:
 
 
 
-st.write('Total data in database: ', len_data())
-
-st.write('Territories in database: ', len(get_df(data, 'no')))
 
 
 
