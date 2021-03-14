@@ -103,6 +103,7 @@ def get_df(data, fecha_desde):
         data_since = data[data.date <= fecha_desde]
         data_by_country_since = data_since.groupby('country').max()[['date','total_vaccinations', 'people_vaccinated']].reset_index()
         data_by_country_since = data_by_country_since.drop(columns = 'date').rename(columns={"total_vaccinations": "total_vaccinations_before", 'people_vaccinated': 'people_vaccinated_before' })
+        data_by_country_since.country = data_by_country_since.country.replace('United Kingdom', 'UK').replace('United States', 'US')
 
 
         data_full = data_full.reset_index()

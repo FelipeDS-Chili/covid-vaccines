@@ -19,32 +19,38 @@ data['date'] = pd.to_datetime(data.date)
 
 
 
-
-
-
+# Solo para el caso de ""no""
+variable_ordenar = 'people_vaccinated' # people_vaccinated | total_vaccinations
+variable_graficar = 'peoplevaccinated_per_100000'  # totvacc_per_100000 |  peoplevaccinated_per_100000
+variable_graficar_desde = 'delta_peoplevaccinated_per_100000' # delta_totvaccinations_per_100000 | delta_peoplevaccinated_per_100000
 
 def len_data():
     print(' Calculando largo de data ...')
     return len(data)
 
 @st.cache(suppress_st_warning = True)
-def get_bar_chart_data():
+def get_chart_per_inhabitants():
 
 
     if fecha_desde == 'no':
 
-        top_20_vaccines = get_df(data, 'no').sort_values('totvacc_per_100000', ascending = False).head(30)
+        top_20_vaccines = get_df(data, 'no').sort_values( variable_ordenar, ascending = False ).head(30)
 
-        return top_20_vaccines[['country', 'totvacc_per_100000']].sort_values('totvacc_per_100000', ascending = True)
+        return top_20_vaccines[['country', variable_graficar]].sort_values( variable_graficar, ascending = False )
+
     else:
 
-        top_20_vaccines = get_df(data, fecha_desde).sort_values('delta_totvaccinations_per_100000', ascending = False).head(30)
 
-        return top_20_vaccines[['country', 'delta_totvaccinations_per_100000']]
+        top_20_vaccines = get_df(data, fecha_desde).sort_values('total_vaccinations_today', ascending = False).head(30)
+
+
+        return top_20_vaccines[['country', 'delta_peoplevaccinated_per_100000' ]].sort_values( 'delta_peoplevaccinated_per_100000' , ascending = False)
+
+
 
 
 @st.cache(suppress_st_warning = True)
-def get_bar_chart_data_total():
+def get_total_vaccinations():
     print('get_bar_chart_data called')
 
     top_20_vaccines = get_df(data, 'no').sort_values('total_vaccinations', ascending = False).head(30)
@@ -92,11 +98,11 @@ if st.checkbox('Mostrar tasa de incremento de vacunas respecto a una fecha anter
 
         st.write('Total data in database: ', len_data())
 
-        st.write('Territories in database: ', len(get_df(data, 'no')))
+        st.write('Territories in database: ', len( get_df(data, 'no') ) )
 
         st.subheader('Total Vaccinations')
 
-        chart_total = get_bar_chart_data_total()
+        chart_total = get_total_vaccinations()
 
         st.altair_chart(alt.Chart(chart_total, width = 800, height = 800).mark_bar().encode(
             x=alt.X('total_vaccinations'),
@@ -106,15 +112,16 @@ if st.checkbox('Mostrar tasa de incremento de vacunas respecto a una fecha anter
 
         st.subheader(f'Change rate from {fecha_desde_s} until today')
 
-        chart_data = get_bar_chart_data()
+        chart_data = get_chart_per_inhabitants()
 
         brush = alt.selection(type='interval', encodings=['y'])
 
         st.altair_chart(alt.Chart(chart_data, width = 800, height = 800).mark_bar().encode(
-            x=alt.X('delta_totvaccinations_per_100000'),
+            x=alt.X('delta_peoplevaccinated_per_100000'),
             y=alt.Y('country', sort ='-x'
                 ),color = "country:N"
-        ).interactive().properties(title="Top 30: Change Rate Total Vaccinations per 100.000 inhabitants").resolve_scale(color='shared'))
+        ).interactive().properties(title="Top 30: Change Rate People Vaccinated per 100.000 inhabitants").resolve_scale(color='shared'))
+
 
 
 
@@ -130,7 +137,7 @@ else:
 
         st.subheader('Total Vaccinations')
 
-        chart_total = get_bar_chart_data_total()
+        chart_total = get_total_vaccinations()
 
         st.altair_chart(alt.Chart(chart_total, width = 800, height = 800).mark_bar().encode(
             x=alt.X('total_vaccinations'),
@@ -140,15 +147,15 @@ else:
 
         st.subheader('Vaccinations per inhabitants')
 
-        chart_data = get_bar_chart_data()
+        chart_data = get_chart_per_inhabitants()
 
         brush = alt.selection(type='interval', encodings=['y'])
 
         st.altair_chart(alt.Chart(chart_data, width = 800, height = 800).mark_bar().encode(
-            x=alt.X('totvacc_per_100000'),
+            x=alt.X(variable_graficar),
             y=alt.Y('country', sort ='-x'
                 ),color = "country:N"
-        ).interactive().properties(title="Top 30: Vaccinations per 100.000 inhabitants").resolve_scale(color='shared'))
+        ).interactive().properties(title="Top 30: People Vaccinated per 100.000 inhabitants").resolve_scale(color='shared'))
 
 
 
