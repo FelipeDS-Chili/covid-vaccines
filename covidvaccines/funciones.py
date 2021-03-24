@@ -94,8 +94,8 @@ def get_df(data, fecha_desde):
 
 
     if fecha_desde == 'no':
-        data_full['totvacc_per_100000'] = data_full.total_vaccinations/data_full.pop_data_2019*100000
-        data_full['peoplevaccinated_per_100000'] = data_full.people_vaccinated/data_full.pop_data_2019*100000
+        data_full['totvacc_per_100'] = data_full.total_vaccinations/data_full.pop_data_2019*100
+        data_full['peoplevaccinated_per_100'] = data_full.people_vaccinated/data_full.pop_data_2019*100
 
         return data_full.drop(columns = 'date').reset_index()
 
@@ -112,19 +112,19 @@ def get_df(data, fecha_desde):
 
         data_full = data_full.merge(data_by_country_since, how = 'left', on = 'country' )
 
-        data_full['totvacc_per_100000_today'] = data_full.total_vaccinations_today/data_full.pop_data_2019*100000
+        data_full['totvacc_per_100_today'] = data_full.total_vaccinations_today/data_full.pop_data_2019*100
 
-        data_full['totvacc_per_100000_before'] = data_full.total_vaccinations_before/data_full.pop_data_2019*100000
+        data_full['totvacc_per_100_before'] = data_full.total_vaccinations_before/data_full.pop_data_2019*100
 
-        data_full['peoplevacc_per_100000_today'] = data_full.people_vaccinated_today/data_full.pop_data_2019*100000
+        data_full['peoplevacc_per_100_today'] = data_full.people_vaccinated_today/data_full.pop_data_2019*100
 
-        data_full['peoplevacc_per_100000_before'] = data_full.people_vaccinated_before/data_full.pop_data_2019*100000
+        data_full['peoplevacc_per_100_before'] = data_full.people_vaccinated_before/data_full.pop_data_2019*100
 
 
 
-        data_full['delta_peoplevaccinated_per_100000'] = data_full.peoplevacc_per_100000_today - data_full.peoplevacc_per_100000_before
+        data_full['delta_peoplevaccinated_per_100'] = data_full.peoplevacc_per_100_today - data_full.peoplevacc_per_100_before
 
-        data_full['delta_totvaccinations_per_100000'] = data_full.totvacc_per_100000_today - data_full.totvacc_per_100000_before
+        data_full['delta_totvaccinations_per_100'] = data_full.totvacc_per_100_today - data_full.totvacc_per_100_before
 
         return data_full.drop(columns = 'date')
 

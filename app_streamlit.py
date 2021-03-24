@@ -21,15 +21,15 @@ data['date'] = pd.to_datetime(data.date)
 
 # Solo para el caso de ""no""
 variable_ordenar = 'people_vaccinated' # people_vaccinated | total_vaccinations
-variable_graficar = 'peoplevaccinated_per_100000'  # totvacc_per_100000 |  peoplevaccinated_per_100000
-variable_graficar_desde = 'delta_peoplevaccinated_per_100000' # delta_totvaccinations_per_100000 | delta_peoplevaccinated_per_100000
+variable_graficar = 'peoplevaccinated_per_100'  # totvacc_per_100000 |  peoplevaccinated_per_100000
+variable_graficar_desde = 'delta_peoplevaccinated_per_100' # delta_totvaccinations_per_100000 | delta_peoplevaccinated_per_100000
 
 def len_data():
     print(' Calculando largo de data ...')
     return len(data)
 
 @st.cache(suppress_st_warning = True)
-def get_chart_per_inhabitants():
+def get_chart_per_inhabitants(fecha_desde):
 
 
     if fecha_desde == 'no':
@@ -44,7 +44,7 @@ def get_chart_per_inhabitants():
         top_20_vaccines = get_df(data, fecha_desde).sort_values('total_vaccinations_today', ascending = False).head(30)
 
 
-        return top_20_vaccines[['country', 'delta_peoplevaccinated_per_100000' ]].sort_values( 'delta_peoplevaccinated_per_100000' , ascending = False)
+        return top_20_vaccines[['country', 'delta_peoplevaccinated_per_100' ]].sort_values( 'delta_peoplevaccinated_per_100' , ascending = False)
 
 
 
@@ -112,15 +112,15 @@ if st.checkbox('Mostrar tasa de incremento de vacunas respecto a una fecha anter
 
         st.subheader(f'Change rate from {fecha_desde_s} until today')
 
-        chart_data = get_chart_per_inhabitants()
+        chart_data = get_chart_per_inhabitants(fecha_desde)
 
         brush = alt.selection(type='interval', encodings=['y'])
 
         st.altair_chart(alt.Chart(chart_data, width = 800, height = 800).mark_bar().encode(
-            x=alt.X('delta_peoplevaccinated_per_100000'),
+            x=alt.X('delta_peoplevaccinated_per_100'),
             y=alt.Y('country', sort ='-x'
                 ),color = "country:N"
-        ).interactive().properties(title="Top 30: Change Rate People Vaccinated per 100.000 inhabitants").resolve_scale(color='shared'))
+        ).interactive().properties(title="Top 30: Change Rate People Vaccinated per 100 inhabitants").resolve_scale(color='shared'))
 
 
 
@@ -147,7 +147,7 @@ else:
 
         st.subheader('Vaccinations per inhabitants')
 
-        chart_data = get_chart_per_inhabitants()
+        chart_data = get_chart_per_inhabitants(fecha_desde)
 
         brush = alt.selection(type='interval', encodings=['y'])
 
