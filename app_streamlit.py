@@ -29,31 +29,31 @@ def len_data():
     return len(data)
 
 @st.cache(suppress_st_warning = True)
-def get_chart_per_inhabitants(fecha_desde):
+def get_chart_per_inhabitants(df, fecha_desde):
 
 
     if fecha_desde == 'no':
 
-        top_20_vaccines = get_df(data, 'no').sort_values( variable_ordenar, ascending = False ).head(30)
+        top_20_vaccines = df.sort_values( variable_ordenar, ascending = False ).head(30)
 
         return top_20_vaccines[['country', variable_graficar]].sort_values( variable_graficar, ascending = False )
 
     else:
 
 
-        top_20_vaccines = get_df(data, fecha_desde).sort_values('total_vaccinations_today', ascending = False).head(30)
+        top_20_vaccines = df.sort_values('total_vaccinations_today', ascending = False).head(30)
 
 
-        return top_20_vaccines[['country', 'delta_peoplevaccinated_per_100' ]].sort_values( 'delta_peoplevaccinated_per_100' , ascending = False)
+        return top_20_vaccines[['country', 'delta_peoplevaccinated_per_100']].sort_values( 'delta_peoplevaccinated_per_100' , ascending = False)
 
 
 
 
 @st.cache(suppress_st_warning = True)
-def get_total_vaccinations():
+def get_total_vaccinations(df):
     print('get_bar_chart_data called')
 
-    top_20_vaccines = get_df(data, 'no').sort_values('total_vaccinations', ascending = False).head(30)
+    top_20_vaccines = df.sort_values('total_vaccinations', ascending = False).head(30)
 
     return top_20_vaccines[['country', 'total_vaccinations']]
 
@@ -78,7 +78,8 @@ def get_total_vaccinations():
 
 # st.line_chart(df2)
 
-
+data_deploy = get_df(data, 'no')
+chart_total = get_total_vaccinations( data_deploy )
 
 
 
@@ -93,16 +94,19 @@ if st.checkbox('Mostrar tasa de incremento de vacunas respecto a una fecha anter
 
 
 
+
     if st.button('Mostrar gráficos'):
 
 
-        st.write('Total data in database: ', len_data())
+        data_with_date = get_df(data, fecha_desde)
 
-        st.write('Territories in database: ', len( get_df(data, 'no') ) )
+        st.write('Total data in database: ', len(data) )
+
+        st.write('Territories in database: ', len( data_deploy ) )
 
         st.subheader('Total Vaccinations')
 
-        chart_total = get_total_vaccinations()
+
 
         st.altair_chart(alt.Chart(chart_total, width = 800, height = 800).mark_bar().encode(
             x=alt.X('total_vaccinations'),
@@ -110,9 +114,13 @@ if st.checkbox('Mostrar tasa de incremento de vacunas respecto a una fecha anter
                 ),color = "country:N"
         ).interactive().properties(title="Top 30: Total Vaccinations by Country").resolve_scale(color='shared'))
 
+
+
+
         st.subheader(f'Change rate from {fecha_desde_s} until today')
 
-        chart_data = get_chart_per_inhabitants(fecha_desde)
+
+        chart_data = get_chart_per_inhabitants(data_with_date, fecha_desde)
 
         brush = alt.selection(type='interval', encodings=['y'])
 
@@ -126,18 +134,19 @@ if st.checkbox('Mostrar tasa de incremento de vacunas respecto a una fecha anter
 
 
 else:
+
     fecha_desde = 'no'
+
 
     if st.button('Mostrar gráficos de hoy'):
 
 
-        st.write('Total data in database: ', len_data())
+        st.write('Total data in database: ', len(data) )
 
-        st.write('Territories in database: ', len(get_df(data, 'no')))
+        st.write('Territories in database: ', len(data_deploy) )
 
         st.subheader('Total Vaccinations')
 
-        chart_total = get_total_vaccinations()
 
         st.altair_chart(alt.Chart(chart_total, width = 800, height = 800).mark_bar().encode(
             x=alt.X('total_vaccinations'),
@@ -147,7 +156,7 @@ else:
 
         st.subheader('Vaccinations per inhabitants')
 
-        chart_data = get_chart_per_inhabitants(fecha_desde)
+        chart_data = get_chart_per_inhabitants( data_deploy , fecha_desde)
 
         brush = alt.selection(type='interval', encodings=['y'])
 
