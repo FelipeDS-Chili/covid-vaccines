@@ -9,6 +9,7 @@ import json
 import time
 import altair as alt
 import base64
+import plotly.express as px
 import numpy as np
 
 
@@ -28,20 +29,20 @@ def len_data():
     print(' Calculando largo de data ...')
     return len(data)
 
-@st.cache(suppress_st_warning = True)
-def get_chart_per_inhabitants(df, fecha_desde):
+@st.cache(persist = True)
+def get_chart_per_inhabitants( fecha_desde):
 
 
     if fecha_desde == 'no':
 
-        top_20_vaccines = df.sort_values( variable_ordenar, ascending = False ).head(30)
+        top_20_vaccines = get_df(data, 'no').sort_values( variable_ordenar, ascending = False ).head(30)
 
         return top_20_vaccines[['country', variable_graficar]].sort_values( variable_graficar, ascending = False )
 
     else:
 
 
-        top_20_vaccines = df.sort_values('total_vaccinations_today', ascending = False).head(30)
+        top_20_vaccines = get_df(data, fecha_desde).sort_values('total_vaccinations_today', ascending = False).head(30)
 
 
         return top_20_vaccines[['country', 'delta_peoplevaccinated_per_100']].sort_values( 'delta_peoplevaccinated_per_100' , ascending = False)
@@ -49,42 +50,39 @@ def get_chart_per_inhabitants(df, fecha_desde):
 
 
 
-@st.cache(suppress_st_warning = True)
-def get_total_vaccinations(df):
+@st.cache(persist = True)
+def get_total_vaccinations():
     print('get_bar_chart_data called')
 
-    top_20_vaccines = df.sort_values('total_vaccinations', ascending = False).head(30)
+    top_20_vaccines = get_df(data, 'no').sort_values('total_vaccinations', ascending = False).head(30)
 
     return top_20_vaccines[['country', 'total_vaccinations']]
 
+@st.cache(persist = True)
+def get_lines(data):
+    print('Grafico de lineas')
 
+    df = reconstruct_data (data, 'location', 'people_vaccinated', 3 )
+    col = df.groupby('location').max()[['date','total_vaccinations', 'people_vaccinated']].reset_index().sort_values('total_vaccinations', ascending = False)
+    col_usables = col.head(16).location.to_list()
+    col_usables.remove('World')
+    col_todos = col.location.to_list()
 
-# @st.cache
-# def get_line_chart_data():
-#     print('get_line_chart_data called')
-#     df = data_2[(data_2.location=='Israel') | (data_2.location=='Chile')]
-#     df = df.pivot(index='date',columns='location',values='people_vaccinated',margins = True)
-#     #df = data_2.pivot(index='date',columns='location',values='people_vaccinated')
-#     return df
+    for pais in col_usables:
+        col_todos.remove(pais)
 
+    data_line = df.set_index('location').drop(index = col_todos).reset_index()
+    data_line.date = pd.to_datetime(data_line.date)
 
-# df = get_line_chart_data()
+    return data_line
 
-
-# st.line_chart(df)
-
-
-# df2 = get_line_chart_data()
-
-# st.line_chart(df2)
-
-data_deploy = get_df(data, 'no')
-chart_total = get_total_vaccinations( data_deploy )
 
 
 
 
 st.header('Covid Vaccination Progress')
+
+
 
 if st.checkbox('Mostrar tasa de incremento de vacunas respecto a una fecha anterior ?', value=False, key=None):
 
@@ -94,33 +92,14 @@ if st.checkbox('Mostrar tasa de incremento de vacunas respecto a una fecha anter
 
 
 
-
     if st.button('Mostrar gráficos'):
-
-
-        data_with_date = get_df(data, fecha_desde)
-
-        st.write('Total data in database: ', len(data) )
-
-        st.write('Territories in database: ', len( data_deploy ) )
-
-        st.subheader('Total Vaccinations')
-
-
-
-        st.altair_chart(alt.Chart(chart_total, width = 800, height = 800).mark_bar().encode(
-            x=alt.X('total_vaccinations'),
-            y=alt.Y('country', sort ='-x'
-                ),color = "country:N"
-        ).interactive().properties(title="Top 30: Total Vaccinations by Country").resolve_scale(color='shared'))
-
 
 
 
         st.subheader(f'Change rate from {fecha_desde_s} until today')
 
 
-        chart_data = get_chart_per_inhabitants(data_with_date, fecha_desde)
+        chart_data = get_chart_per_inhabitants( fecha_desde)
 
         brush = alt.selection(type='interval', encodings=['y'])
 
@@ -131,8 +110,8 @@ if st.checkbox('Mostrar tasa de incremento de vacunas respecto a una fecha anter
         ).interactive().properties(title="Top 30: Change Rate People Vaccinated per 100 inhabitants").resolve_scale(color='shared'))
 
 
-
-
+        fig = px.line(get_lines(data), x="date", y="people_vaccinated", color="location", hover_name="location", render_mode="svg")
+        st.plotly_chart(fig)
 else:
 
     fecha_desde = 'no'
@@ -143,10 +122,11 @@ else:
 
         st.write('Total data in database: ', len(data) )
 
-        st.write('Territories in database: ', len(data_deploy) )
+        st.write('Territories in database: ', len(get_df(data, 'no')) )
 
         st.subheader('Total Vaccinations')
 
+        chart_total = get_total_vaccinations()
 
         st.altair_chart(alt.Chart(chart_total, width = 800, height = 800).mark_bar().encode(
             x=alt.X('total_vaccinations'),
@@ -156,7 +136,9 @@ else:
 
         st.subheader('Vaccinations per inhabitants')
 
-        chart_data = get_chart_per_inhabitants( data_deploy , fecha_desde)
+        chart_data = get_chart_per_inhabitants(fecha_desde)
+
+
 
         brush = alt.selection(type='interval', encodings=['y'])
 
