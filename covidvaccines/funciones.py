@@ -305,4 +305,4 @@ def reconstruct_data(df, columna_filtro, columna_a_reconstruir, n):
 
 
 if __name__ == '__main__':
-    pass
+    print('hola')
